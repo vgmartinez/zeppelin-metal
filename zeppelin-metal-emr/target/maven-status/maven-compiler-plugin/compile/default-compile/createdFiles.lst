@@ -1,0 +1,3 @@
+org/apache/zeppelin/cluster/ClusterFactory.class
+org/apache/zeppelin/cluster/ClusterSetting.class
+org/apache/zeppelin/cluster/ClusterInfoSaving.class
