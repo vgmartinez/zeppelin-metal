@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="5.7">
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/NotebookRestApi.java">
+<error line="59" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="71" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/ZeppelinRestApi.java">
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/ClusterRestApi.java">
+<error line="27" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="43" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="55" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="84" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="95" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="108" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="121" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/InterpreterRestApi.java">
+<error line="46" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="67" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="80" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="99" column="56" severity="warning" message="&apos;)&apos; está precedido de espacio en blanco." source="com.puppycrawl.tools.checkstyle.checks.whitespace.ParenPadCheck"/>
+<error line="127" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="138" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="158" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/message/NewClusterSettingRequestHadoop.java">
+<error line="3" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/message/InterpreterSettingListForNoteBind.java">
+<error line="24" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/message/Permission.java">
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/message/NewClusterSettingRequestSpark.java">
+<error line="3" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/message/NewClusterSettingRequestRedshift.java">
+<error line="3" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/message/NewInterpreterSettingRequest.java">
+<error line="24" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/message/UpdateInterpreterSettingRequest.java">
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/rest/NotebookResponse.java">
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/server/CorsFilter.java">
+<error line="40" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/server/ZeppelinServer.java">
+<error line="136" column="5" severity="warning" message="&apos;}&apos; debería estar en la misma línea." source="com.puppycrawl.tools.checkstyle.checks.blocks.RightCurlyCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/server/JsonExclusionStrategy.java">
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/server/JsonResponse.java">
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/socket/NotebookSocketListener.java">
+<error line="19" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/socket/NotebookServer.java">
+<error line="495" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+<error line="743" severity="warning" message="La construcción &apos;if&apos; debe usar &apos;{}&apos; (llaves)." source="com.puppycrawl.tools.checkstyle.checks.blocks.NeedBracesCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/socket/NotebookSocket.java">
+<error line="25" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/socket/Message.java">
+</file>
+<file name="/home/victorgarcia/my-repo/incubator-zeppelin/zeppelin-metal/zeppelin-metal-server/src/main/java/org/apache/zeppelin/utils/SecurityUtils.java">
+<error line="26" severity="warning" message="La primera frase debería finalizar con un punto." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck"/>
+</file>
+</checkstyle>
