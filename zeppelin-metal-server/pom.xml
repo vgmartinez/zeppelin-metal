@@ -44,7 +44,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zeppelin-metal-emr</artifactId>
+      <artifactId>zeppelin-metal-aws</artifactId>
       <version>${project.version}</version>
     </dependency>
 

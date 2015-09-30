@@ -9,7 +9,7 @@
     <relativePath>../../</relativePath>
   </parent>
   <groupId>org.apache.zeppelin</groupId>
-  <artifactId>zeppelin-metal-emr</artifactId>
+  <artifactId>zeppelin-metal-aws</artifactId>
   <name>Zeppelin: metal in aws</name>
   <version>0.6.0-incubating-SNAPSHOT</version>
   <url>http://maven.apache.org</url>

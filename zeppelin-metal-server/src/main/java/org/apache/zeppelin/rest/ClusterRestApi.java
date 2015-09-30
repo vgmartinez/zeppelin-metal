@@ -13,8 +13,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.zeppelin.cluster.ClusterFactory;
-import org.apache.zeppelin.cluster.ClusterSetting;
+import org.apache.zeppelin.cluster.emr.EmrClusterFactory;
+import org.apache.zeppelin.cluster.redshift.RedshiftClusterFactory;
+import org.apache.zeppelin.cluster.utils.ClusterSetting;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestHadoop;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestRedshift;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestSpark;
@@ -33,7 +34,8 @@ import com.google.gson.Gson;
 public class ClusterRestApi {
   Logger logger = LoggerFactory.getLogger(ClusterRestApi.class);
   
-  ClusterFactory clusterFactory = new ClusterFactory();
+  EmrClusterFactory clusterFactory = new EmrClusterFactory();
+  RedshiftClusterFactory redshiftFactory = new RedshiftClusterFactory();
   Gson gson = new Gson();
 
   public ClusterRestApi() {
@@ -75,7 +77,7 @@ public class ClusterRestApi {
     } else {
       NewClusterSettingRequestRedshift request = gson.fromJson(message,
           NewClusterSettingRequestRedshift.class);
-      clusterFactory.addRedshift(request.getName(), 
+      redshiftFactory.addRedshift(request.getName(), 
           request.getSlaves(), request.getType());
     }
     return new JsonResponse(Status.ACCEPTED, "").build();
@@ -127,7 +129,7 @@ public class ClusterRestApi {
   public Response resizeMemory(@PathParam("clusterId") String clusterId, 
       String request) throws IOException {
     logger.info("request: " + request);
-    clusterFactory.resizeMemoryCluster(clusterId, Integer.parseInt(request));
+    
     return new JsonResponse(Status.OK).build();
   }
 }
