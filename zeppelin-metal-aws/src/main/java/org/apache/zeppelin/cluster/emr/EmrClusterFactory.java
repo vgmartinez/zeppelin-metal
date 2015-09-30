@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduceClient;
 import com.amazonaws.services.elasticmapreduce.model.BootstrapActionConfig;
 import com.amazonaws.services.elasticmapreduce.model.ClusterStatus;
@@ -54,21 +55,18 @@ public class EmrClusterFactory {
   private Map<String, ClusterSetting> clusterSettings =
       new HashMap<String, ClusterSetting>();
   String[] clusterClassList;
-  String sts = null;
-  String id = null;
-  //static AWSCredentials credentials = (AWSCredentials) 
-    //new ProfileCredentialsProvider("datalab-dev-admin")
-      //.getCredentials();
-  static AWSCredentials credentials = new BasicAWSCredentials("AKIAIJMBYRX2YAHZEA2Q",
-      "eqqrkYQ7vUQWNSa6GimxHq6D70LzuKlc2dIbCakn");
-  AmazonElasticMapReduceClient emr = new AmazonElasticMapReduceClient(credentials);
+  String sts, id = null;
   private RunJobFlowResult result;
-  
-  static AmazonEC2 ec2 = new AmazonEC2Client(credentials);
   public static String clusterIdentifier = "";
   
   private Gson gson = new Gson();
   private ZeppelinConfiguration conf = new ZeppelinConfiguration();
+  
+  AmazonElasticMapReduceClient emr = new AmazonElasticMapReduceClient(
+		  new DefaultAWSCredentialsProviderChain());
+  
+  static AmazonEC2 ec2 = new AmazonEC2Client(new DefaultAWSCredentialsProviderChain());
+  
   
   public EmrClusterFactory() {
     try {
