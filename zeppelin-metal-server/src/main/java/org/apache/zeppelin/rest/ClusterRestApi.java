@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.zeppelin.cluster.emr.EmrClusterFactory;
 import org.apache.zeppelin.cluster.redshift.RedshiftClusterFactory;
 import org.apache.zeppelin.cluster.utils.ClusterSetting;
+import org.apache.zeppelin.clusters.ClusterFactory;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestHadoop;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestRedshift;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestSpark;
@@ -34,8 +35,7 @@ import com.google.gson.Gson;
 public class ClusterRestApi {
   Logger logger = LoggerFactory.getLogger(ClusterRestApi.class);
   
-  EmrClusterFactory clusterFactory = new EmrClusterFactory();
-  RedshiftClusterFactory redshiftFactory = new RedshiftClusterFactory();
+  ClusterFactory clusterFactory = new ClusterFactory();
   Gson gson = new Gson();
 
   public ClusterRestApi() {
@@ -64,22 +64,10 @@ public class ClusterRestApi {
   @POST
   @Path("setting/{type}")
   public Response newSettings(@PathParam("type") String type, String message) throws IOException {
-    if (type.equals("spark")) {
-      NewClusterSettingRequestSpark request = gson.fromJson(message,
-          NewClusterSettingRequestSpark.class);
-      clusterFactory.addSpark(request.getName(), 
-          request.getSlaves());
-    } else if (type.equals("hadoop")) {
-      NewClusterSettingRequestHadoop request = gson.fromJson(message,
-          NewClusterSettingRequestHadoop.class);
-      clusterFactory.addHadoop(request.getName(), 
-          request.getSlaves());
-    } else {
-      NewClusterSettingRequestRedshift request = gson.fromJson(message,
-          NewClusterSettingRequestRedshift.class);
-      redshiftFactory.addRedshift(request.getName(), 
-          request.getSlaves(), request.getType());
-    }
+    NewClusterSettingRequestHadoop request = gson.fromJson(message,
+        NewClusterSettingRequestHadoop.class);
+    clusterFactory.createCluster(request.getName(), 
+        request.getSlaves(), request.getInstance(), type);
     return new JsonResponse(Status.ACCEPTED, "").build();
   }
   
@@ -88,10 +76,10 @@ public class ClusterRestApi {
   * @return
   */
   @GET
-  @Path("status")
+  @Path("status/{clusterId}")
   public Response getStatusCluster(@PathParam("clusterId") String clusterId) {
-    List<ClusterSetting> clusterSeeting = clusterFactory.getStatus();
-    return new JsonResponse(Status.OK, clusterSeeting).build();
+    String status = clusterFactory.getStatus(clusterId);
+    return new JsonResponse(Status.OK, status).build();
   }
   
   /**
@@ -116,7 +104,7 @@ public class ClusterRestApi {
   public Response setInt(@PathParam("intId") String intId, 
       String clustId) throws IOException {
     logger.info("Interpreter id {}, cluster id {}", intId, clustId);
-    clusterFactory.setClusterToInterpreter(intId, clustId);
+    //clusterFactory.setClusterToInterpreter(intId, clustId);
     return new JsonResponse(Status.OK).build();
   }
   

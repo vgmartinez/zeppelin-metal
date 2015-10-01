@@ -17,7 +17,10 @@
 
 package org.apache.zeppelin.cluster.utils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+
 import org.apache.zeppelin.notebook.utility.IdHashes;
 
 /**
@@ -29,24 +32,24 @@ public class ClusterSetting {
   private int slaves;
   private String selected;
   private String status;
-  private String url;
+  private Map<String, String> urls = new HashMap<String, String>();
   private String type;
   
   public ClusterSetting(String id, String name,
-      int slaves, String status, String url, String selected, String type) {
+      int slaves, String status, Map<String, String> urls, String selected, String type) {
     this.id = id;
     this.name = name;
     this.slaves = slaves;
     this.status = status;
-    this.url = url;
+    this.urls = urls;
     this.selected = selected;
     this.type = type;
     
   }
   
-  public ClusterSetting(String name, int slaves, String status, String url,
+  public ClusterSetting(String name, int slaves, String status, Map<String, String> urls,
       String selected, String type) {
-    this(generateId(), name, slaves, status, url, selected, type);
+    this(generateId(), name, slaves, status, urls, selected, type);
   }
   
   public void setId(String id) {
@@ -70,12 +73,12 @@ public class ClusterSetting {
   }
   
   
-  public String getUrl() {
-    return url;
+  public Map<String, String> getUrl() {
+    return urls;
   }
 
-  public void setUrl(String url) {
-    this.url = url;
+  public void setUrl(Map<String, String> urls) {
+    this.urls = urls;
   }
 
   public void setSlaves(int memory) {

@@ -8,6 +8,7 @@ package org.apache.zeppelin.rest.message;
 public class NewClusterSettingRequestHadoop {
   String name;
   int slaves;
+  String instance;
   
   public NewClusterSettingRequestHadoop() {}
 
@@ -18,4 +19,13 @@ public class NewClusterSettingRequestHadoop {
   public int getSlaves() {
     return slaves;
   }
+
+  public String getInstance() {
+    return instance;
+  }
+
+  public void setInstance(String instance) {
+    this.instance = instance;
+  }
+  
 }

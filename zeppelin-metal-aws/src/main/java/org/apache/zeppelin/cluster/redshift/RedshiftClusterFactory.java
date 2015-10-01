@@ -1,26 +1,16 @@
 package org.apache.zeppelin.cluster.redshift;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.zeppelin.cluster.utils.ClusterInfoSaving;
 import org.apache.zeppelin.cluster.utils.ClusterSetting;
-import org.apache.zeppelin.conf.ZeppelinConfiguration;
+import org.apache.zeppelin.clusters.ClusterImpl;
+import org.apache.zeppelin.clusters.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.redshift.AmazonRedshiftClient;
 import com.amazonaws.services.redshift.model.Cluster;
@@ -28,37 +18,36 @@ import com.amazonaws.services.redshift.model.CreateClusterRequest;
 import com.amazonaws.services.redshift.model.DeleteClusterRequest;
 import com.amazonaws.services.redshift.model.DescribeClustersRequest;
 import com.amazonaws.services.redshift.model.DescribeClustersResult;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 
 /**
  * Interpreter Rest API
  *
  */
-public class RedshiftClusterFactory {
+public class RedshiftClusterFactory extends Clusters {
   static Logger logger = LoggerFactory.getLogger(RedshiftClusterFactory.class);
   
-  private Map<String, ClusterSetting> clusterSettings =
-      new HashMap<String, ClusterSetting>();
-  String[] clusterClassList;
   String sts, id = null;
   public static String clusterIdentifier = "";
   
-  private Gson gson = new Gson();
-  private ZeppelinConfiguration conf = new ZeppelinConfiguration();
-  
   public static AmazonRedshiftClient client = new AmazonRedshiftClient(
-		  new DefaultAWSCredentialsProviderChain());
+      new DefaultAWSCredentialsProviderChain());
   
-  public RedshiftClusterFactory() {
-    try {
-      loadFromFile();
-    } catch (IOException e) {
-      e.printStackTrace();
+  ClusterImpl clusterImpl = new ClusterImpl();
+  
+  public RedshiftClusterFactory() {}
+
+  @Override
+  public void createCluster(String name, int slaves, String type) {
+
+    ClusterSetting clustSetting = new ClusterSetting(name, slaves,
+        "starting", null, "", "redshift");
+    
+    if (createClusterRedshift(name, slaves, "admin", "Admin123", type)){
+      clusterImpl.add(clustSetting);
     }
   }
-
+  
   public boolean createClusterRedshift(String name, int slaves, 
       String user, String passw, String type) {
     clusterIdentifier = name;
@@ -80,17 +69,24 @@ public class RedshiftClusterFactory {
     return true;
   }
 
-  private String getStatusRedshift(String clusterId) throws InterruptedException {
-    clusterIdentifier = clusterSettings.get(clusterId).getName();
+  private String getStatusRedshift(String clusterId) {
+    Map<String, String> urls = new HashMap<String, String>();
+    String status = null;
+    clusterIdentifier = clusterImpl.get(clusterId).getName();
     DescribeClustersResult result = client.describeClusters(new DescribeClustersRequest()
         .withClusterIdentifier(clusterIdentifier));
-    String status = (result.getClusters()).get(0).getClusterStatus();
+    
+    List<Cluster> Redshiftclusters = result.getClusters();
+    for (Cluster cluster: Redshiftclusters) {
+      if (cluster.getClusterIdentifier() == clusterIdentifier) {
+        status = cluster.getClusterStatus();
+      }
+    }
     if (status.equalsIgnoreCase("available")) {
-      clusterSettings.get(clusterId).setUrl(getUrlRedshift(clusterId));
-      try {
-        saveToFile();
-      } catch (IOException e) {
-        e.printStackTrace();
+      String dns = getUrlRedshift(clusterId);
+      if (!dns.isEmpty()) {
+        urls.put("host", dns);
+        clusterImpl.get(clusterId).setUrl(urls);
       }
       return status;
     }
@@ -104,122 +100,23 @@ public class RedshiftClusterFactory {
     return url;
   }
   
-  public List<ClusterSetting> getStatus() {
-    String status = null;
-    for (ClusterSetting cluster: clusterSettings.values()) {
-      try {
-        status = getStatusRedshift(cluster.getId());
-        cluster.setStatus(status);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    }
-    return new ArrayList<ClusterSetting>(clusterSettings.values());
-  }
-  
-  private void loadFromFile() throws IOException {
-    GsonBuilder builder = new GsonBuilder();
-    Gson gson = builder.create();
-    File settingFile = new File(conf.getConfDir() + "/clusters.json");
-    if (!settingFile.exists()) {
-      return;
-    }
-    FileInputStream fis = new FileInputStream(settingFile);
-    InputStreamReader isr = new InputStreamReader(fis);
-    BufferedReader bufferedReader = new BufferedReader(isr);
-    StringBuilder sb = new StringBuilder();
-    String line;
-    while ((line = bufferedReader.readLine()) != null) {
-      sb.append(line);
-    }
-    isr.close();
-    fis.close();
-
-    String json = sb.toString();
-    ClusterInfoSaving info = gson.fromJson(json, ClusterInfoSaving.class);
-    for (String k : info.clusterSettings.keySet()) {
-      ClusterSetting setting = info.clusterSettings.get(k);
-
-      ClusterSetting clustSetting = new ClusterSetting(
-        setting.getId(),
-        setting.getName(),
-        setting.getSlaves(),
-        setting.getStatus(),
-        setting.getUrl(),
-        setting.getSelected(),
-        setting.getType());
-
-      clusterSettings.put(k, clustSetting);
-    }
-  }
-
-  private void saveToFile() throws IOException {
-    String jsonString;
-
-    synchronized (clusterSettings) {
-      ClusterInfoSaving info = new ClusterInfoSaving();
-      info.clusterSettings = clusterSettings;
-
-      jsonString = gson.toJson(info);
-    }
-
-    File settingFile = new File(conf.getConfDir() + "/clusters.json");
-    if (!settingFile.exists()) {
-      settingFile.createNewFile();
-    }
-
-    FileOutputStream fos = new FileOutputStream(settingFile, false);
-    OutputStreamWriter out = new OutputStreamWriter(fos);
-    out.append(jsonString);
-    out.close();
-    fos.close();
-  }
-  
-  /**
-   * Get loaded interpreters
-   * @return
-   */
-  public List<ClusterSetting> get() {
-    synchronized (clusterSettings) {
-      List<ClusterSetting> orderedSettings = new LinkedList<ClusterSetting>();
-      List<ClusterSetting> settings = new LinkedList<ClusterSetting>(
-          clusterSettings.values());
-      
-      for (ClusterSetting setting : settings) {
-        orderedSettings.add(setting); 
-      }
-      return orderedSettings;
-    }
-  }
-  
-  /**
-   * @param name user defined name
-   * @param slaves 
-   * @throws IOException
-   */
-  public boolean addRedshift(String name, int slaves, String type)
-      throws IOException {
-
-    ClusterSetting clustSetting = new ClusterSetting(id, name, slaves,
-        "starting", "", "", "redshift");
-    id = clustSetting.getId();
+  public String getStatus(String clusterId) {
+    ClusterSetting cluster = clusterImpl.get(clusterId);
     
-    if (createClusterRedshift(name, slaves, "admin", "Admin123", type)){
-      clusterSettings.put(id, clustSetting);
-      saveToFile();
-      return true;
-    } else {
-      return false;
-    }
+    String status = getStatusRedshift(clusterId);
+    
+    cluster.setStatus(status);
+    
+    return status;
   }
   
-  public boolean remove(String clusterId, boolean snapshot)
-      throws IOException {
+  public boolean remove(String clusterId, boolean snapshot) {
+    clusterImpl.remove(clusterId);
     return removeRedshiftCluster(clusterId, snapshot);
   }
   
   public boolean removeRedshiftCluster(String clusterId, boolean snapshot) {
-    String name = clusterSettings.get(clusterId).getName();
+    String name = clusterImpl.get(clusterId).getName();
     if (snapshot) {
       client.deleteCluster(new DeleteClusterRequest()
           .withClusterIdentifier(name)
@@ -229,18 +126,11 @@ public class RedshiftClusterFactory {
           .withClusterIdentifier(name)
           .withSkipFinalClusterSnapshot(true));
     }
-    clusterSettings.remove(clusterId);
-    try {
-      saveToFile();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
     return true;
   }
   
   public void setClusterToInterpreter(String intId, String clustId) {
-    List<ClusterSetting> settings = new LinkedList<ClusterSetting>(
-        clusterSettings.values());
+    List<ClusterSetting> settings = new LinkedList<ClusterSetting>(clusterImpl.list());
     if (clustId.equals("")) {
       for (ClusterSetting setting : settings) {
         if (setting.getSelected().equals(intId)) {
@@ -253,12 +143,7 @@ public class RedshiftClusterFactory {
           setting.setSelected("");
         }
       }
-      clusterSettings.get(clustId).setSelected(intId);
-    }
-    try {
-      saveToFile();
-    } catch (IOException e) {
-      e.printStackTrace();
+      clusterImpl.get(clustId).setSelected(intId);
     }
   }
 }
