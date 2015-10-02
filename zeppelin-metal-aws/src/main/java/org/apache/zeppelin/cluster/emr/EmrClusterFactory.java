@@ -42,8 +42,6 @@ import com.amazonaws.services.elasticmapreduce.util.StepFactory;
 public class EmrClusterFactory extends Clusters {
   static Logger logger = LoggerFactory.getLogger(EmrClusterFactory.class);
   
-  String sts, id = null;
-  private RunJobFlowResult result;
   public static String clusterIdentifier = "";
   
   AmazonElasticMapReduceClient emr = new AmazonElasticMapReduceClient(
@@ -59,12 +57,12 @@ public class EmrClusterFactory extends Clusters {
 
     String id = createClusterHadoop(name, nodes, instance);
     ClusterSetting clustSetting = new ClusterSetting(id, name, nodes, 
-        "starting", null, "", "spark");
+        "starting", null, "", "hadoop");
     clusterImpl.add(clustSetting);
   }
   
   public String createClusterSpark(String name, int nodes, String type){
-    
+    RunJobFlowResult result;
     Application sparkApp = new Application()
       .withName("Spark");
     
@@ -88,7 +86,7 @@ public class EmrClusterFactory extends Clusters {
   }
   
   public String createClusterHadoop(String name, int nodes, String instance){
-    
+    RunJobFlowResult result;
     StepFactory stepFactory = new StepFactory();
     
     StepConfig enabledebugging = new StepConfig()
@@ -136,7 +134,6 @@ public class EmrClusterFactory extends Clusters {
   public String getStatusEmr(String clusterId){
     String state = null;
     Map<String, String> urls = new HashMap<String, String>();
-    String dns = getDnsMaster(clusterId);
     
     List<ClusterSummary> EmrClusters = emr.listClusters().getClusters();
     for (ClusterSummary clusterSummary: EmrClusters) {
@@ -147,13 +144,14 @@ public class EmrClusterFactory extends Clusters {
     }
     if (state.contains("TERMINATED")) {
       return "terminated";
+    } else if (state.contains("WAITING") || state.contains("RUNNING")) {
+      String dns = getDnsMaster(clusterId);
+      if (!dns.isEmpty()) {
+        urls.put("hue", dns + ":8888");
+        urls.put("master", dns + ":9026");
+        clusterImpl.get(clusterId).setUrl(urls);
+      } 
     }
-    if (!dns.isEmpty()) {
-      urls.put("hue", dns + ":8888");
-      urls.put("master", dns + ":9026");
-      clusterImpl.get(clusterId).setUrl(urls);
-    }
-    
     return state.toLowerCase();
   }
   
@@ -196,22 +194,14 @@ public class EmrClusterFactory extends Clusters {
     return clusterImpl.list();
   }
   
-  public void remove(String clusterId, boolean snapshot) {
+  public void remove(String clusterId) {
     clusterImpl.remove(clusterId);
     removeEmrCluster(clusterId);
   }
   
   public void removeEmrCluster(String clusterId) {
-    String jobFlowId = null;
-    String name = clusterImpl.get(clusterId).getName();
-    List<ClusterSummary> clusters = emr.listClusters().getClusters();
-    for (int i = 0; i < clusters.size(); i++) {
-      if (clusters.get(i).getName().equals(name)) {
-        jobFlowId = clusters.get(i).getId();
-        emr.terminateJobFlows(
-            new TerminateJobFlowsRequest(Arrays.asList(new String[] {jobFlowId})));
-      }
-    }
+    emr.terminateJobFlows(
+        new TerminateJobFlowsRequest(Arrays.asList(new String[] {clusterId})));
   }
   
   public void setClusterToInterpreter(String intId, String clustId) {

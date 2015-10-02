@@ -33,13 +33,28 @@ public class ClusterFactory {
   }
   
   public String getStatus(String clusterId) {
-    Clusters cluster = new EmrClusterFactory();
-    logger.info("CLUSTER_ID: " + clusterId);
-    return cluster.getStatus(clusterId);
+    ClusterImpl clusterImpl = new ClusterImpl();
+    ClusterSetting cl = clusterImpl.get(clusterId);
+    
+    if (cl.getType().equals("hadoop")) {
+      Clusters cluster = new EmrClusterFactory();
+      return cluster.getStatus(clusterId);
+    } else {
+      Clusters cluster = new RedshiftClusterFactory();
+      return cluster.getStatus(clusterId);
+    }
   }
   
-  public void remove(String clusterId, boolean snapshot) {
-    ClusterImpl cluster = new ClusterImpl();
-    cluster.remove(clusterId);
+  public void remove(String clusterId) {
+    ClusterImpl clusterImpl = new ClusterImpl();
+    ClusterSetting cl = clusterImpl.get(clusterId);
+    
+    if (cl.getType().equals("hadoop")) {
+      Clusters cluster = new EmrClusterFactory();
+      cluster.remove(clusterId);
+    } else if (cl.getType().equals("redshift")) {
+      Clusters cluster = new RedshiftClusterFactory();
+      cluster.remove(clusterId);
+    }
   }
 }

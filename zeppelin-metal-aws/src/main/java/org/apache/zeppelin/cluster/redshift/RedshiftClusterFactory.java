@@ -1,5 +1,6 @@
 package org.apache.zeppelin.cluster.redshift;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,7 +28,6 @@ import com.amazonaws.services.redshift.model.DescribeClustersResult;
 public class RedshiftClusterFactory extends Clusters {
   static Logger logger = LoggerFactory.getLogger(RedshiftClusterFactory.class);
   
-  String sts, id = null;
   public static String clusterIdentifier = "";
   
   public static AmazonRedshiftClient client = new AmazonRedshiftClient(
@@ -75,10 +75,9 @@ public class RedshiftClusterFactory extends Clusters {
     clusterIdentifier = clusterImpl.get(clusterId).getName();
     DescribeClustersResult result = client.describeClusters(new DescribeClustersRequest()
         .withClusterIdentifier(clusterIdentifier));
-    
     List<Cluster> Redshiftclusters = result.getClusters();
     for (Cluster cluster: Redshiftclusters) {
-      if (cluster.getClusterIdentifier() == clusterIdentifier) {
+      if (cluster.getClusterIdentifier().equals(clusterIdentifier)) {
         status = cluster.getClusterStatus();
       }
     }
@@ -106,27 +105,27 @@ public class RedshiftClusterFactory extends Clusters {
     String status = getStatusRedshift(clusterId);
     
     cluster.setStatus(status);
+    logger.info("STATUS: " + status);
+    try {
+      clusterImpl.saveToFile();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
     
     return status;
   }
   
-  public boolean remove(String clusterId, boolean snapshot) {
+  public void remove(String clusterId) {
+    removeRedshiftCluster(clusterId);
     clusterImpl.remove(clusterId);
-    return removeRedshiftCluster(clusterId, snapshot);
   }
   
-  public boolean removeRedshiftCluster(String clusterId, boolean snapshot) {
+  public void removeRedshiftCluster(String clusterId) {
     String name = clusterImpl.get(clusterId).getName();
-    if (snapshot) {
-      client.deleteCluster(new DeleteClusterRequest()
-          .withClusterIdentifier(name)
-          .withFinalClusterSnapshotIdentifier(name)); 
-    } else {
-      client.deleteCluster(new DeleteClusterRequest()
-          .withClusterIdentifier(name)
-          .withSkipFinalClusterSnapshot(true));
-    }
-    return true;
+    client.deleteCluster(new DeleteClusterRequest()
+        .withClusterIdentifier(name)
+        .withSkipFinalClusterSnapshot(true));
+    
   }
   
   public void setClusterToInterpreter(String intId, String clustId) {

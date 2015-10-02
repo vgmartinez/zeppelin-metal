@@ -87,11 +87,11 @@ public class ClusterRestApi {
   * @return
   */
   @DELETE
-  @Path("setting/{settingId}/{snapshot}")
-  public Response removeSetting(@PathParam("settingId") String settingId,
-      @PathParam("snapshot") String snapshot) throws IOException {
+  @Path("setting/{settingId}")
+  public Response removeSetting(@PathParam("settingId") String settingId)
+      throws IOException {
     logger.info("Remove interpreterSetting {}", settingId);
-    clusterFactory.remove(settingId, Boolean.parseBoolean(snapshot));
+    clusterFactory.remove(settingId);
     return new JsonResponse(Status.OK).build();
   }
   
