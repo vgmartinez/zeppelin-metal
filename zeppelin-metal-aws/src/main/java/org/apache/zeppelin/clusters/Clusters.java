@@ -1,13 +1,16 @@
 package org.apache.zeppelin.clusters;
 
+import java.util.Map;
+
 
 /**
  * Clusters abstract class
  *
  */
-public abstract class Clusters {
+public interface Clusters {
   
-  public abstract void createCluster(String name, int nodes, String type);
+  public abstract void createCluster(String name, int nodes, 
+      String type, Map<String, Boolean> apps);
   
   public abstract String getStatus(String clusterId);
   

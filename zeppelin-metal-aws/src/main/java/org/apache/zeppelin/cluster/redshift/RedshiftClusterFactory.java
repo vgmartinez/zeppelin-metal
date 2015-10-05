@@ -25,7 +25,7 @@ import com.amazonaws.services.redshift.model.DescribeClustersResult;
  * Interpreter Rest API
  *
  */
-public class RedshiftClusterFactory extends Clusters {
+public class RedshiftClusterFactory implements Clusters {
   static Logger logger = LoggerFactory.getLogger(RedshiftClusterFactory.class);
   
   public static String clusterIdentifier = "";
@@ -38,10 +38,10 @@ public class RedshiftClusterFactory extends Clusters {
   public RedshiftClusterFactory() {}
 
   @Override
-  public void createCluster(String name, int slaves, String type) {
+  public void createCluster(String name, int slaves, String type, Map<String, Boolean> apps) {
 
     ClusterSetting clustSetting = new ClusterSetting(name, slaves,
-        "starting", null, "", "redshift");
+        "starting", null, "", "redshift", apps);
     
     if (createClusterRedshift(name, slaves, "admin", "Admin123", type)){
       clusterImpl.add(clustSetting);

@@ -51,7 +51,6 @@ public class ClusterRestApi {
   public Response listSettings() {
     List<ClusterSetting> clusterSettings = null;
     clusterSettings = clusterFactory.get();
-    logger.info("SETTING" + clusterSettings.toString());
     return new JsonResponse(Status.OK, "", clusterSettings).build();
   }
   /**
@@ -67,7 +66,7 @@ public class ClusterRestApi {
     NewClusterSettingRequestHadoop request = gson.fromJson(message,
         NewClusterSettingRequestHadoop.class);
     clusterFactory.createCluster(request.getName(), 
-        request.getSlaves(), request.getInstance(), type);
+        request.getSlaves(), request.getInstance(), type, request.getApp());
     return new JsonResponse(Status.ACCEPTED, "").build();
   }
   

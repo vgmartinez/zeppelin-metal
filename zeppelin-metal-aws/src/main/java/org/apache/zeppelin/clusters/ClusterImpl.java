@@ -142,7 +142,8 @@ public class ClusterImpl {
         setting.getStatus(),
         setting.getUrl(),
         setting.getSelected(),
-        setting.getType());
+        setting.getType(),
+        setting.getApps());
 
       clusterSettings.put(k, clustSetting);
     }

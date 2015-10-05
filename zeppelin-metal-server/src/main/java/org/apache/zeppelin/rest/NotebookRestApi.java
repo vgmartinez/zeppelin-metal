@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.zeppelin.interpreter.InterpreterSetting;
 import org.apache.zeppelin.notebook.Notebook;
 import org.apache.zeppelin.rest.message.InterpreterSettingListForNoteBind;
-import org.apache.zeppelin.rest.message.Permission;
 import org.apache.zeppelin.server.JsonResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

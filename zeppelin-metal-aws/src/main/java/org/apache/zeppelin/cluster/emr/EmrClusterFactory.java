@@ -39,7 +39,7 @@ import com.amazonaws.services.elasticmapreduce.util.StepFactory;
  * Interpreter Rest API
  *
  */
-public class EmrClusterFactory extends Clusters {
+public class EmrClusterFactory implements Clusters {
   static Logger logger = LoggerFactory.getLogger(EmrClusterFactory.class);
   
   public static String clusterIdentifier = "";
@@ -53,47 +53,34 @@ public class EmrClusterFactory extends Clusters {
   public EmrClusterFactory() {}
 
   @Override
-  public void createCluster(String name, int nodes, String instance) {
+  public void createCluster(String name, int nodes, String instance, Map<String, Boolean> apps) {
 
-    String id = createClusterHadoop(name, nodes, instance);
+    String id = createClusterHadoop(name, nodes, instance, apps);
     ClusterSetting clustSetting = new ClusterSetting(id, name, nodes, 
-        "starting", null, "", "hadoop");
+        "starting", null, "", "hadoop", apps);
+    clustSetting.setApps(apps);
     clusterImpl.add(clustSetting);
-  }
-  
-  public String createClusterSpark(String name, int nodes, String type){
-    RunJobFlowResult result;
-    Application sparkApp = new Application()
-      .withName("Spark");
     
-    List<Application> myApps = new ArrayList<Application>();
-    myApps.add(sparkApp);
-
-    RunJobFlowRequest request = new RunJobFlowRequest()
-        .withName(name)
-        .withReleaseLabel("emr-4.0.0")
-        .withApplications(myApps)
-        .withServiceRole("EMR_DefaultRole")
-        .withJobFlowRole("EMR_EC2_DefaultRole")
-        .withInstances(new JobFlowInstancesConfig()
-            .withInstanceCount(nodes + 1)
-            .withKeepJobFlowAliveWhenNoSteps(true)
-            .withMasterInstanceType(type)
-            .withSlaveInstanceType(type)
-      );
-    result = emr.runJobFlow(request);
-    return result.getJobFlowId();
+    try {
+      clusterImpl.saveToFile();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
   
-  public String createClusterHadoop(String name, int nodes, String instance){
+  public String createClusterHadoop(String name, int nodes, String instance, 
+      Map<String, Boolean> apps){
     RunJobFlowResult result;
+    List<StepConfig> appsToIntall = new LinkedList<StepConfig>();
     StepFactory stepFactory = new StepFactory();
     
     StepConfig enabledebugging = new StepConfig()
         .withName("Enable debugging")
         .withActionOnFailure("TERMINATE_JOB_FLOW")
         .withHadoopJarStep(stepFactory.newEnableDebuggingStep());
-
+    
+    appsToIntall.add(enabledebugging);
+    
     StepConfig installHive = new StepConfig()
         .withName("Install Hive")
         .withActionOnFailure("TERMINATE_JOB_FLOW")
@@ -108,25 +95,44 @@ public class EmrClusterFactory extends Clusters {
         .withActionOnFailure("TERMINATE_JOB_FLOW")
         .withHadoopJarStep(hadoopStep);
     
-    SupportedProductConfig sparkConfig = new SupportedProductConfig()
-        .withName("Spark");
-    
     BootstrapActionConfig boots = new BootstrapActionConfig("Install Hue",
             new ScriptBootstrapActionConfig("s3://elasticmapreduce/libs/hue/install-hue", null));
     
     RunJobFlowRequest request = new RunJobFlowRequest()
-        .withName(name)
-        .withAmiVersion("3.8.0")
-        .withSteps(enabledebugging, installHive, installHue)
-        .withNewSupportedProducts(sparkConfig)
-        .withBootstrapActions(boots)
-        .withServiceRole("EMR_DefaultRole")
-        .withJobFlowRole("EMR_EC2_DefaultRole")
-        .withInstances(new JobFlowInstancesConfig()
-            .withInstanceCount(nodes)
-            .withKeepJobFlowAliveWhenNoSteps(true)
-            .withMasterInstanceType(instance)
-            .withSlaveInstanceType(instance));
+      .withName(name)
+      .withServiceRole("EMR_DefaultRole")
+      .withJobFlowRole("EMR_EC2_DefaultRole")
+      .withInstances(new JobFlowInstancesConfig()
+        .withInstanceCount(nodes)
+        .withKeepJobFlowAliveWhenNoSteps(true)
+        .withMasterInstanceType(instance)
+        .withSlaveInstanceType(instance));
+    
+    if (apps.get("hive")) {
+      appsToIntall.add(installHive);
+    } 
+    if (apps.get("hue")) {
+      appsToIntall.add(installHue);
+      request
+        .withBootstrapActions(boots);
+    } 
+    if (apps.get("spark")) {
+      Application sparkApp = new Application()
+        .withName("Spark");
+    
+      List<Application> spark = new ArrayList<Application>();
+      spark.add(sparkApp);
+      request
+        .withReleaseLabel("emr-4.1.0")
+        .withApplications(spark);
+    } else {
+      request
+        .withAmiVersion("3.8.0");
+    }
+    
+    request
+      .withSteps(appsToIntall);
+    
     result = emr.runJobFlow(request);
     return result.getJobFlowId();
   }
@@ -143,13 +149,19 @@ public class EmrClusterFactory extends Clusters {
       }
     }
     if (state.contains("TERMINATED")) {
+      clusterImpl.remove(clusterId);
       return "terminated";
     } else if (state.contains("WAITING") || state.contains("RUNNING")) {
       String dns = getDnsMaster(clusterId);
       if (!dns.isEmpty()) {
-        urls.put("hue", dns + ":8888");
+        ClusterSetting cl = clusterImpl.get(clusterId);
+        
+        if (cl.getApps().get("hue")) {
+          urls.put("hue", dns + ":8888");          
+        }
+        
         urls.put("master", dns + ":9026");
-        clusterImpl.get(clusterId).setUrl(urls);
+        cl.setUrl(urls);
       } 
     }
     return state.toLowerCase();
@@ -195,7 +207,6 @@ public class EmrClusterFactory extends Clusters {
   }
   
   public void remove(String clusterId) {
-    clusterImpl.remove(clusterId);
     removeEmrCluster(clusterId);
   }
   
