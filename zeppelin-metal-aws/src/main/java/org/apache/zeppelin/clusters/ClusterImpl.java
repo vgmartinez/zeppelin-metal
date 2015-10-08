@@ -30,7 +30,7 @@ import com.google.gson.GsonBuilder;
  */
 
 public class ClusterImpl {
-  static Logger logger = LoggerFactory.getLogger(Clusters.class);
+  static Logger logger = LoggerFactory.getLogger(ClusterImpl.class);
   
   private Map<String, ClusterSetting> clusterSettings =
       new HashMap<String, ClusterSetting>();

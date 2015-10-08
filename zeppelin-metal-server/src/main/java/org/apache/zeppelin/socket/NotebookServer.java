@@ -24,7 +24,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.zeppelin.conf.ZeppelinConfiguration;
 import org.apache.zeppelin.conf.ZeppelinConfiguration.ConfVars;
 import org.apache.zeppelin.display.AngularObject;
@@ -47,6 +49,7 @@ import org.eclipse.jetty.websocket.WebSocketServlet;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 /**
@@ -118,6 +121,9 @@ public class NotebookServer extends WebSocketServlet implements
             break;
           case CLONE_NOTE:
             cloneNote(conn, notebook, messagereceived);
+            break;
+          case LOAD_NOTE:
+            loadNote(conn, notebook, messagereceived);
             break;
           case COMMIT_PARAGRAPH:
             updateParagraph(conn, notebook, messagereceived);
@@ -454,6 +460,42 @@ public class NotebookServer extends WebSocketServlet implements
       Paragraph p = (Paragraph) para.clone();
       newNote.addParagraph(p);
     }
+    newNote.persist();
+    broadcastNote(newNote);
+    broadcastNoteList();
+  }
+  
+  private void loadNote(NotebookSocket conn, Notebook notebook, Message fromMessage)
+      throws IOException, CloneNotSupportedException {
+    
+    Map<String, Object> config = (Map<String, Object>) fromMessage
+        .get("config");
+    String name = (String) fromMessage.get("name");
+    List<Map<String, Object>> paragraphs = (List<Map<String, Object>>) 
+        fromMessage.get("paragraphs");
+
+    Note newNote = notebook.createNote();
+    newNote.setConfig(config);
+    
+    if (name != null) {
+      newNote.setName(name);
+    }
+    
+    for (int i = 0; i < paragraphs.size(); i++) {
+      Paragraph paragraph = newNote.addParagraph();
+      
+      Map<String, Object> para = paragraphs.get(i);
+      Map<String, Object> setting = (Map<String, Object>) para.get("settings");
+      
+      paragraph.setConfig((Map<String, Object>) para.get("config"));
+      paragraph.setText((String) para.get("text"));
+      paragraph.setTitle((String) para.get("tittle"));
+      paragraph.settings.setParams((Map<String, Object>) setting.get("params"));
+      
+      Object result = (Object) para.get("result");
+      paragraph.setResult(result);
+    }
+    
     newNote.persist();
     broadcastNote(newNote);
     broadcastNoteList();

@@ -8,8 +8,9 @@ package org.apache.zeppelin.rest.message;
 public class NewClusterSettingRequestRedshift {
   String name;
   int slaves;
-  String type;
+  String instance;
   String passw;
+  String user;
   
   public NewClusterSettingRequestRedshift() {}
 
@@ -21,7 +22,15 @@ public class NewClusterSettingRequestRedshift {
     return slaves;
   }
   
-  public String getType() {
-    return type;
+  public String getUser() {
+    return user;
+  }
+  
+  public String getPassw() {
+    return passw;
+  }
+  
+  public String getInstance() {
+    return instance;
   }
 }

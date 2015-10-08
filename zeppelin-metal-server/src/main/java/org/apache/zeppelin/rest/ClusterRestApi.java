@@ -13,13 +13,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.zeppelin.cluster.emr.EmrClusterFactory;
-import org.apache.zeppelin.cluster.redshift.RedshiftClusterFactory;
 import org.apache.zeppelin.cluster.utils.ClusterSetting;
 import org.apache.zeppelin.clusters.ClusterFactory;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestHadoop;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestRedshift;
-import org.apache.zeppelin.rest.message.NewClusterSettingRequestSpark;
 import org.apache.zeppelin.server.JsonResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,10 +60,19 @@ public class ClusterRestApi {
   @POST
   @Path("setting/{type}")
   public Response newSettings(@PathParam("type") String type, String message) throws IOException {
-    NewClusterSettingRequestHadoop request = gson.fromJson(message,
-        NewClusterSettingRequestHadoop.class);
-    clusterFactory.createCluster(request.getName(), 
-        request.getSlaves(), request.getInstance(), type, request.getApp());
+    if (type.equals("emr")) {
+      NewClusterSettingRequestHadoop request = gson.fromJson(message,
+          NewClusterSettingRequestHadoop.class);
+      clusterFactory.createCluster(request.getName(), 
+          request.getSlaves(), request.getInstance(), type, request.getApp());
+    } else {
+      NewClusterSettingRequestRedshift request = gson.fromJson(message, 
+          NewClusterSettingRequestRedshift.class);
+      clusterFactory.createCluster(request.getName(),
+          request.getSlaves(), request.getInstance(), type, null, 
+          request.getUser(), request.getPassw());
+    }
+    
     return new JsonResponse(Status.ACCEPTED, "").build();
   }
   
@@ -103,7 +109,7 @@ public class ClusterRestApi {
   public Response setInt(@PathParam("intId") String intId, 
       String clustId) throws IOException {
     logger.info("Interpreter id {}, cluster id {}", intId, clustId);
-    //clusterFactory.setClusterToInterpreter(intId, clustId);
+    clusterFactory.setClusterToInterpreter(intId, clustId);
     return new JsonResponse(Status.OK).build();
   }
   

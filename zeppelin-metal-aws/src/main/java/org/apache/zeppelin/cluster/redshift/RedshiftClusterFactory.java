@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.apache.zeppelin.cluster.utils.ClusterSetting;
 import org.apache.zeppelin.clusters.ClusterImpl;
-import org.apache.zeppelin.clusters.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,7 @@ import com.amazonaws.services.redshift.model.DescribeClustersResult;
  * Interpreter Rest API
  *
  */
-public class RedshiftClusterFactory implements Clusters {
+public class RedshiftClusterFactory {
   static Logger logger = LoggerFactory.getLogger(RedshiftClusterFactory.class);
   
   public static String clusterIdentifier = "";
@@ -37,13 +36,12 @@ public class RedshiftClusterFactory implements Clusters {
   
   public RedshiftClusterFactory() {}
 
-  @Override
-  public void createCluster(String name, int slaves, String type, Map<String, Boolean> apps) {
+  public void createCluster(String name, int slaves, String type, String user, String passw) {
 
     ClusterSetting clustSetting = new ClusterSetting(name, slaves,
-        "starting", null, "", "redshift", apps);
+        "starting", null, "", "redshift", null);
     
-    if (createClusterRedshift(name, slaves, "admin", "Admin123", type)){
+    if (createClusterRedshift(name, slaves, user, passw, type)){
       clusterImpl.add(clustSetting);
     }
   }
@@ -81,12 +79,16 @@ public class RedshiftClusterFactory implements Clusters {
         status = cluster.getClusterStatus();
       }
     }
+    logger.info("STATUS_REDSHIFT: " + status);
     if (status.equalsIgnoreCase("available")) {
       String dns = getUrlRedshift(clusterId);
       if (!dns.isEmpty()) {
-        urls.put("host", dns);
+        urls.put("dns", dns);
         clusterImpl.get(clusterId).setUrl(urls);
       }
+      return status;
+    } else if (status.contains("DELETING")) {
+      clusterImpl.remove(clusterId);
       return status;
     }
     return status;
@@ -117,7 +119,6 @@ public class RedshiftClusterFactory implements Clusters {
   
   public void remove(String clusterId) {
     removeRedshiftCluster(clusterId);
-    clusterImpl.remove(clusterId);
   }
   
   public void removeRedshiftCluster(String clusterId) {
@@ -126,23 +127,5 @@ public class RedshiftClusterFactory implements Clusters {
         .withClusterIdentifier(name)
         .withSkipFinalClusterSnapshot(true));
     
-  }
-  
-  public void setClusterToInterpreter(String intId, String clustId) {
-    List<ClusterSetting> settings = new LinkedList<ClusterSetting>(clusterImpl.list());
-    if (clustId.equals("")) {
-      for (ClusterSetting setting : settings) {
-        if (setting.getSelected().equals(intId)) {
-          setting.setSelected("");
-        }
-      } 
-    } else {
-      for (ClusterSetting setting : settings) {
-        if (setting.getSelected().equals(intId)) {
-          setting.setSelected("");
-        }
-      }
-      clusterImpl.get(clustId).setSelected(intId);
-    }
   }
 }
