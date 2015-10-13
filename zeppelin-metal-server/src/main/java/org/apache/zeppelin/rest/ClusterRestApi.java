@@ -81,10 +81,11 @@ public class ClusterRestApi {
   * @return
   */
   @GET
-  @Path("status/{clusterId}")
-  public Response getStatusCluster(@PathParam("clusterId") String clusterId) {
-    String status = clusterFactory.getStatus(clusterId);
-    return new JsonResponse(Status.OK, status).build();
+  @Path("status")
+  public Response getStatusCluster() {
+    List<ClusterSetting> clusterSettings = null;
+    clusterSettings = clusterFactory.getStatus();
+    return new JsonResponse(Status.OK, clusterSettings).build();
   }
   
   /**

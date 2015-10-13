@@ -2,7 +2,6 @@ package org.apache.zeppelin.cluster.redshift;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +17,6 @@ import com.amazonaws.services.redshift.model.CreateClusterRequest;
 import com.amazonaws.services.redshift.model.DeleteClusterRequest;
 import com.amazonaws.services.redshift.model.DescribeClustersRequest;
 import com.amazonaws.services.redshift.model.DescribeClustersResult;
-
 
 /**
  * Interpreter Rest API
@@ -36,35 +34,27 @@ public class RedshiftClusterFactory {
   
   public RedshiftClusterFactory() {}
 
-  public void createCluster(String name, int slaves, String type, String user, String passw) {
-
+  public ClusterSetting createCluster(String name, int slaves, 
+      String type, String user, String passw) {
     ClusterSetting clustSetting = new ClusterSetting(name, slaves,
         "starting", null, "", "redshift", null);
+    createClusterRedshift(name, slaves, user, passw, type);
     
-    if (createClusterRedshift(name, slaves, user, passw, type)){
-      clusterImpl.add(clustSetting);
-    }
+    return clustSetting;
   }
   
-  public boolean createClusterRedshift(String name, int slaves, 
+  public void createClusterRedshift(String name, int slaves, 
       String user, String passw, String type) {
     clusterIdentifier = name;
-    try {            
-      CreateClusterRequest request = new CreateClusterRequest()
-          .withClusterIdentifier(name)
-          .withMasterUsername(user)
-          .withMasterUserPassword(passw)
-          .withNodeType(type)
-          .withNumberOfNodes(slaves);          
+    CreateClusterRequest request = new CreateClusterRequest()
+        .withClusterIdentifier(name)
+        .withMasterUsername(user)
+        .withMasterUserPassword(passw)
+        .withNodeType(type)
+        .withNumberOfNodes(slaves);          
         
-      Cluster createResponse = client.createCluster(request);
-      logger.info("Created cluster " + createResponse.getClusterIdentifier());
-      
-    } catch (Exception e) {
-      logger.info("Operation failed: " + e.getMessage());
-      return false;
-    }
-    return true;
+    Cluster createResponse = client.createCluster(request);
+    logger.info("Created cluster " + createResponse.getClusterIdentifier());
   }
 
   private String getStatusRedshift(String clusterId) {
@@ -79,17 +69,12 @@ public class RedshiftClusterFactory {
         status = cluster.getClusterStatus();
       }
     }
-    logger.info("STATUS_REDSHIFT: " + status);
     if (status.equalsIgnoreCase("available")) {
       String dns = getUrlRedshift(clusterId);
-      if (!dns.isEmpty()) {
+      if (dns != null && !dns.isEmpty()) {
         urls.put("dns", dns);
         clusterImpl.get(clusterId).setUrl(urls);
       }
-      return status;
-    } else if (status.contains("DELETING")) {
-      clusterImpl.remove(clusterId);
-      return status;
     }
     return status;
   }
@@ -103,18 +88,7 @@ public class RedshiftClusterFactory {
   
   public String getStatus(String clusterId) {
     ClusterSetting cluster = clusterImpl.get(clusterId);
-    
-    String status = getStatusRedshift(clusterId);
-    
-    cluster.setStatus(status);
-    logger.info("STATUS: " + status);
-    try {
-      clusterImpl.saveToFile();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    
-    return status;
+    return getStatusRedshift(clusterId);
   }
   
   public void remove(String clusterId) {
@@ -126,6 +100,5 @@ public class RedshiftClusterFactory {
     client.deleteCluster(new DeleteClusterRequest()
         .withClusterIdentifier(name)
         .withSkipFinalClusterSnapshot(true));
-    
   }
 }

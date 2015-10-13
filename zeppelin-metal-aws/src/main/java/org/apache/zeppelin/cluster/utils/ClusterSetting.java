@@ -24,7 +24,7 @@ import java.util.Random;
 import org.apache.zeppelin.notebook.utility.IdHashes;
 
 /**
- * Interpreter settings
+ * Cluster settings
  */
 public class ClusterSetting {
   private String id;

@@ -1,6 +1,6 @@
 package org.apache.zeppelin.clusters;
 
-
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -24,10 +24,14 @@ public class ClusterFactory {
       Object ... args) {
     if (type.equals("emr")) {
       EmrClusterFactory cluster = new EmrClusterFactory();
-      cluster.createCluster(name, nodes, instance, (Map<String, Boolean>) args[0]);
+      ClusterSetting cls = cluster.createCluster(name, nodes, instance, 
+          (Map<String, Boolean>) args[0]);
+      clusterImpl.add(cls);
     } else if (type.equals("redshift")) {
       RedshiftClusterFactory cluster = new RedshiftClusterFactory();
-      cluster.createCluster(name, nodes, instance, (String) args[1], (String) args[2]);
+      ClusterSetting cls = cluster.createCluster(name, nodes, instance, 
+          (String) args[1], (String) args[2]);
+      clusterImpl.add(cls);
     }
   }
   
@@ -35,16 +39,36 @@ public class ClusterFactory {
     return clusterImpl.list();
   }
   
-  public String getStatus(String clusterId) {
-    ClusterSetting cl = clusterImpl.get(clusterId);
-    
-    if (cl.getType().equals("emr")) {
-      EmrClusterFactory cluster = new EmrClusterFactory();
-      return cluster.getStatus(clusterId);
-    } else {
-      RedshiftClusterFactory cluster = new RedshiftClusterFactory();
-      return cluster.getStatus(clusterId);
+  public List<ClusterSetting> getStatus() {
+    List<ClusterSetting> clusterSettings = clusterImpl.list();
+    String status = null;
+    for (ClusterSetting cl: clusterSettings) {
+      String clusterId = cl.getId();
+      if (cl.getType().equals("emr")) {
+        EmrClusterFactory cluster = new EmrClusterFactory();
+        status = cluster.getStatusEmr(clusterId);
+        logger.info("Status EMR: " + status);
+        if (status.contains("TERMINATED")) {
+          cl.setStatus(status);
+          logger.info("eliminando emr");
+          clusterImpl.remove(clusterId);
+        } else {
+          cl.setStatus(status);
+        } 
+      } else {
+        RedshiftClusterFactory cluster = new RedshiftClusterFactory();
+        status = cluster.getStatus(clusterId);
+        logger.info("Status REDSHIFT: " + status);
+        if (status.contains("DELETING")) {
+          cl.setStatus(status);
+          logger.info("eliminando redshift");
+          clusterImpl.remove(clusterId);
+        } else {
+          cl.setStatus(status);
+        }
+      }
     }
+    return clusterImpl.list();
   }
   
   public void remove(String clusterId) {
@@ -56,6 +80,11 @@ public class ClusterFactory {
     } else if (cl.getType().equals("redshift")) {
       RedshiftClusterFactory cluster = new RedshiftClusterFactory();
       cluster.remove(clusterId);
+    }
+    try {
+      clusterImpl.saveToFile();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
   
