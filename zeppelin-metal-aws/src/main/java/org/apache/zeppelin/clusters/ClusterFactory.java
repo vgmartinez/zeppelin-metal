@@ -46,27 +46,28 @@ public class ClusterFactory {
       String clusterId = cl.getId();
       if (cl.getType().equals("emr")) {
         EmrClusterFactory cluster = new EmrClusterFactory();
-        status = cluster.getStatusEmr(clusterId);
-        logger.info("Status EMR: " + status);
-        if (status.contains("TERMINATED")) {
+        status = cluster.getStatus(clusterId);
+        if (status.equals("deleting")) {
           cl.setStatus(status);
-          logger.info("eliminando emr");
           clusterImpl.remove(clusterId);
         } else {
           cl.setStatus(status);
-        } 
+        }
       } else {
         RedshiftClusterFactory cluster = new RedshiftClusterFactory();
         status = cluster.getStatus(clusterId);
-        logger.info("Status REDSHIFT: " + status);
-        if (status.contains("DELETING")) {
+        if (status.equals("deleting")) {
           cl.setStatus(status);
-          logger.info("eliminando redshift");
           clusterImpl.remove(clusterId);
         } else {
           cl.setStatus(status);
         }
       }
+    }
+    try {
+      clusterImpl.saveToFile();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
     return clusterImpl.list();
   }

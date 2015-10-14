@@ -123,9 +123,34 @@ public class EmrClusterFactory {
       urls.put("dns", dns);
       cl.setUrl(urls);
     } 
-    return state.toLowerCase();
+    return state;
   }
 
+  public String getStatus(String clusterId) {
+    String status;
+    switch (getStatusEmr(clusterId)) {
+        case "WAITING":
+          status = "running";
+          break;
+        case "RUNNING":
+          status = "starting";
+          break;
+        case "STARTING":
+          status = "starting";
+          break;
+        case "TERMINATED":
+          status = "deleting";
+          break;
+        case "BOOTSTRAPING":
+          status = "starting";
+          break;
+        default:
+          status = "deleting";
+          break;
+    }
+    return status;
+  }
+  
   public String getDnsMaster(String clusterId){
     String master = null;
     DescribeInstancesResult describeInstancesRequest = ec2.describeInstances();

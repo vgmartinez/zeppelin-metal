@@ -1,6 +1,5 @@
 package org.apache.zeppelin.cluster.redshift;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,8 +86,22 @@ public class RedshiftClusterFactory {
   }
   
   public String getStatus(String clusterId) {
-    ClusterSetting cluster = clusterImpl.get(clusterId);
-    return getStatusRedshift(clusterId);
+    String status;
+    switch (getStatusRedshift(clusterId)) {
+        case "available":
+          status = "running";
+          break;
+        case "creating":
+          status = "starting";
+          break;
+        case "deleting":
+          status = "deleting";
+          break;
+        default:
+          status = "failed";
+          break;
+    }
+    return status;
   }
   
   public void remove(String clusterId) {
