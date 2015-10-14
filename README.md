@@ -57,7 +57,7 @@ For install zeppelin-metal the next steps is necessary:
   addJarInDir "${ZEPPELIN_HOME}/zeppelin-web/target/lib"
 ```
 ###Installation zeppelin-metal-web
-For installation of [https://github.com/vgmartinez/zeppelin-web-metal]```zeppelin-metal-web``` only need pull from git repo.
+For installation of [zeppelin-metal-web](https://github.com/vgmartinez/zeppelin-web-metal) only need pull from git repo.
 ```
   git remote add metal https://github.com/vgmartinez/zeppelin-web-metal.git
   git pull metal master
