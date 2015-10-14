@@ -1,7 +1,6 @@
 # Metal for Apache Zeppelin
 
-Zeppelin-metal is a module for Apache Zeppelin infrastructure management, for the moment it is only possible to EMR
-and Redshift cluster. In EMR some applications like Hive, Hue and Spark are available.
+Zeppelin-Metal is a module for Apache Zeppelin infrastructure management, by now only it is possible to EMR and Redshift cluster. In EMR some applications like Hive, Hue and Spark are available.
 
 For example you can set the spark cluster to Spark interpreter in Zeppelin the same for hive interpreter.
 
