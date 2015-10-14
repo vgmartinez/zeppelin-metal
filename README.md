@@ -6,7 +6,7 @@ and Redshift cluster. In EMR some applications like Hive, Hue and Spark are avai
 For example you can set the spark cluster to Spark interpreter in Zeppelin the same for hive interpreter.
 
 ##AWS
-For use the cluster is necessary environment variable **AWS_ACCESS_KEY_ID** and **AWS_SECRET_ACCESS_KEY**
+Environment variable **AWS_ACCESS_KEY_ID** and **AWS_SECRET_ACCESS_KEY** is necessary  for use the cluster
 or credentials file e.g
 
 ```
