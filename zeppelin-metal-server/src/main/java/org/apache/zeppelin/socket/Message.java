@@ -56,7 +56,6 @@ public class Message {
     CLONE_NOTE, // [c-s] clone new notebook
                 // @param id id of note to clone
                 // @param name name fpor the cloned note
-    LOAD_NOTE,
     NOTE_UPDATE,
 
     RUN_PARAGRAPH, // [c-s] run paragraph
