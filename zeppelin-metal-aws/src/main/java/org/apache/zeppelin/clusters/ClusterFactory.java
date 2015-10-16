@@ -41,33 +41,16 @@ public class ClusterFactory {
   
   public List<ClusterSetting> getStatus() {
     List<ClusterSetting> clusterSettings = clusterImpl.list();
-    String status = null;
+
     for (ClusterSetting cl: clusterSettings) {
       String clusterId = cl.getId();
       if (cl.getType().equals("emr")) {
         EmrClusterFactory cluster = new EmrClusterFactory();
-        status = cluster.getStatus(clusterId);
-        if (status.equals("deleting")) {
-          cl.setStatus(status);
-          clusterImpl.remove(clusterId);
-        } else {
-          cl.setStatus(status);
-        }
+        cluster.getStatus(clusterId);
       } else {
         RedshiftClusterFactory cluster = new RedshiftClusterFactory();
-        status = cluster.getStatus(clusterId);
-        if (status.equals("deleting")) {
-          cl.setStatus(status);
-          clusterImpl.remove(clusterId);
-        } else {
-          cl.setStatus(status);
-        }
+        cluster.getStatus(clusterId);
       }
-    }
-    try {
-      clusterImpl.saveToFile();
-    } catch (IOException e) {
-      e.printStackTrace();
     }
     return clusterImpl.list();
   }

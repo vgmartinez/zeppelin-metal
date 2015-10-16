@@ -50,12 +50,9 @@ public class EmrClusterFactory {
     String id = createClusterHadoop(name, nodes, instance, apps);
     ClusterSetting clustSetting = new ClusterSetting(id, name, nodes, 
         "starting", null, "", "emr", apps);
-    clustSetting.setApps(apps);
-    try {
-      clusterImpl.saveToFile();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    
+    clusterImpl.add(clustSetting);
+    
     return clustSetting;
   }
   
@@ -104,8 +101,7 @@ public class EmrClusterFactory {
 
   public String getStatusEmr(String clusterId){
     String state = null;
-    Map<String, String> urls = new HashMap<String, String>();
-
+    
     List<ClusterSummary> EmrClusters = emr.listClusters().getClusters();
     for (ClusterSummary clusterSummary: EmrClusters) {
       if (clusterSummary.getId().equals(clusterId)) {
@@ -113,40 +109,56 @@ public class EmrClusterFactory {
         state = status.getState();
       }
     }
+    return state;
+  }
+
+  public String getStatus(String clusterId) {
+    String status;
+    ClusterSetting cl = clusterImpl.get(clusterId);
+    Map<String, String> urls = new HashMap<String, String>();
+    
+    switch (getStatusEmr(clusterId)) {
+        case "WAITING":
+          status = "running";
+          cl.setStatus(status);
+          break;
+        case "RUNNING":
+          status = "starting";
+          cl.setStatus(status);
+          break;
+        case "STARTING":
+          status = "starting";
+          cl.setStatus(status);
+          break;
+        case "TERMINATED":
+          status = "deleting";
+          cl.setStatus(status);
+          clusterImpl.remove(clusterId);
+          break;
+        case "BOOTSTRAPING":
+          status = "starting";
+          cl.setStatus(status);
+          break;
+        default:
+          status = "deleting";
+          break;
+    }
+    
     String dns = getDnsMaster(clusterId);
     if (dns != null && !dns.isEmpty()) {
-      ClusterSetting cl = clusterImpl.get(clusterId);
+      logger.info("MASTER: " + dns);
       if (cl.getApps().get("hue")) {
         urls.put("hue", "http://" + dns + ":8888");          
       }
       urls.put("master", "http://" + dns + ":8088");
       urls.put("dns", dns);
       cl.setUrl(urls);
-    } 
-    return state;
-  }
-
-  public String getStatus(String clusterId) {
-    String status;
-    switch (getStatusEmr(clusterId)) {
-        case "WAITING":
-          status = "running";
-          break;
-        case "RUNNING":
-          status = "starting";
-          break;
-        case "STARTING":
-          status = "starting";
-          break;
-        case "TERMINATED":
-          status = "deleting";
-          break;
-        case "BOOTSTRAPING":
-          status = "starting";
-          break;
-        default:
-          status = "deleting";
-          break;
+    }
+    logger.info("cl-status" + cl.getStatus());
+    try {
+      clusterImpl.saveToFile();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
     return status;
   }
@@ -170,10 +182,6 @@ public class EmrClusterFactory {
       count = 0;
     }
     return master;
-  }
-  
-  public List<ClusterSetting> get() {
-    return clusterImpl.list();
   }
   
   public void remove(String clusterId) {

@@ -1,5 +1,6 @@
 package org.apache.zeppelin.cluster.redshift;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class RedshiftClusterFactory {
         "starting", null, "", "redshift", null);
     createClusterRedshift(name, slaves, user, passw, type);
     
+    clusterImpl.add(clustSetting);
     return clustSetting;
   }
   
@@ -57,7 +59,6 @@ public class RedshiftClusterFactory {
   }
 
   private String getStatusRedshift(String clusterId) {
-    Map<String, String> urls = new HashMap<String, String>();
     String status = null;
     clusterIdentifier = clusterImpl.get(clusterId).getName();
     DescribeClustersResult result = client.describeClusters(new DescribeClustersRequest()
@@ -68,13 +69,7 @@ public class RedshiftClusterFactory {
         status = cluster.getClusterStatus();
       }
     }
-    if (status.equalsIgnoreCase("available")) {
-      String dns = getUrlRedshift(clusterId);
-      if (dns != null && !dns.isEmpty()) {
-        urls.put("dns", dns);
-        clusterImpl.get(clusterId).setUrl(urls);
-      }
-    }
+    
     return status;
   }
   
@@ -87,19 +82,40 @@ public class RedshiftClusterFactory {
   
   public String getStatus(String clusterId) {
     String status;
+    Map<String, String> urls = new HashMap<String, String>();
+    ClusterSetting cl = clusterImpl.get(clusterId);
+    
     switch (getStatusRedshift(clusterId)) {
         case "available":
           status = "running";
+          cl.setStatus(status);
           break;
         case "creating":
           status = "starting";
+          cl.setStatus(status);
           break;
         case "deleting":
           status = "deleting";
+          cl.setStatus(status);
+          clusterImpl.remove(clusterId);
           break;
         default:
           status = "failed";
+          cl.setStatus(status);
           break;
+    }
+    
+    if (status.equalsIgnoreCase("available")) {
+      String dns = getUrlRedshift(clusterId);
+      if (dns != null && !dns.isEmpty()) {
+        urls.put("dns", dns);
+        clusterImpl.get(clusterId).setUrl(urls);
+      }
+    }
+    try {
+      clusterImpl.saveToFile();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
     return status;
   }
