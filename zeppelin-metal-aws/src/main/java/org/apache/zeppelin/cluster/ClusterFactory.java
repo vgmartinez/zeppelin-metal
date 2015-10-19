@@ -68,21 +68,12 @@ public class ClusterFactory {
     }
   }
   
-  public List<ClusterSetting> get() {
-    List<ClusterSetting> orderedSettings = new LinkedList<ClusterSetting>();
-    List<ClusterSetting> settings = new LinkedList<ClusterSetting>(
-      clusterSettings.values());
-    
-    for (ClusterSetting setting : settings) {
-      orderedSettings.add(setting); 
-    }
-    return orderedSettings;
-  }
-  
   public List<ClusterSetting> getStatus() {
+    List<ClusterSetting> orderedSettings = new LinkedList<ClusterSetting>();
+    
     for (ClusterSetting cl: clusterSettings.values()) {
       String clusterId = cl.getId();
-      
+      orderedSettings.add(cl); 
       if (cl.getType().equals("emr")) {
         String status = emr.getStatus(clusterId);
         Map<String, String> urls = new HashMap<String, String>();
@@ -103,7 +94,8 @@ public class ClusterFactory {
         }
         cl.setStatus(status);
       } else {
-        String status = redshift.getStatus(clusterId);
+        String status = redshift.getStatus(clusterSettings
+            .get(clusterId).getName());
         Map<String, String> urls = new HashMap<String, String>();
         
         if (status.equals("deleting")) {
@@ -120,7 +112,7 @@ public class ClusterFactory {
       }
     }
     saveToFile();
-    return get();
+    return orderedSettings;
   }
   
   public void remove(String clusterId) {
@@ -138,7 +130,7 @@ public class ClusterFactory {
   }
   
   public void setClusterToInterpreter(String intId, String clustId) {
-    List<ClusterSetting> settings = new LinkedList<ClusterSetting>(get());
+    List<ClusterSetting> settings = new LinkedList<ClusterSetting>();
     if (clustId.equals("")) {
       for (ClusterSetting setting : settings) {
         if (setting.getSelected().equals(intId)) {

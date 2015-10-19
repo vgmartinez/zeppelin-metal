@@ -38,18 +38,7 @@ public class ClusterRestApi {
   public ClusterRestApi() {
     
   }
-  
-  /**
-  * List all cluster
-  * @return
-  */
-  @GET
-  @Path("setting")
-  public Response listSettings() {
-    List<ClusterSetting> clusterSettings = null;
-    clusterSettings = clusterFactory.get();
-    return new JsonResponse(Status.OK, "", clusterSettings).build();
-  }
+
   /**
   * Add new cluster setting
   * @param name
@@ -77,7 +66,7 @@ public class ClusterRestApi {
   }
   
   /**
-  * Cluster status check
+  * Get status of clusters
   * @return
   */
   @GET
