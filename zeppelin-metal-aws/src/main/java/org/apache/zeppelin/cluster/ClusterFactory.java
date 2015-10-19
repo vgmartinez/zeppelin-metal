@@ -1,4 +1,4 @@
-package org.apache.zeppelin.clusters;
+package org.apache.zeppelin.cluster;
 
 import java.io.BufferedReader;
 import java.io.File;

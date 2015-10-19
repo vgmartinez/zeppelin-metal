@@ -13,8 +13,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.zeppelin.cluster.ClusterFactory;
 import org.apache.zeppelin.cluster.utils.ClusterSetting;
-import org.apache.zeppelin.clusters.ClusterFactory;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestHadoop;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestRedshift;
 import org.apache.zeppelin.server.JsonResponse;
