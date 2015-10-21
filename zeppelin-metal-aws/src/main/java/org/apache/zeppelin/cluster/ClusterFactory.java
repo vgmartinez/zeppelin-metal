@@ -12,10 +12,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.zeppelin.cluster.emr.ClusterSettingEmr;
 import org.apache.zeppelin.cluster.emr.EmrClusterFactory;
+import org.apache.zeppelin.cluster.rds.ClusterSettingRds;
+import org.apache.zeppelin.cluster.rds.RdsClusterFactory;
+import org.apache.zeppelin.cluster.redshift.ClusterSettingRedshift;
 import org.apache.zeppelin.cluster.redshift.RedshiftClusterFactory;
 import org.apache.zeppelin.cluster.utils.ClusterInfoSaving;
-import org.apache.zeppelin.cluster.utils.ClusterSetting;
 import org.apache.zeppelin.conf.ZeppelinConfiguration;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterSerializer;
@@ -34,12 +37,16 @@ public class ClusterFactory {
   static Logger logger = LoggerFactory.getLogger(ClusterFactory.class);
   private Gson gson = new Gson();
   private ZeppelinConfiguration conf = new ZeppelinConfiguration();
-  private Map<String, ClusterSetting> clusterSettings =
-      new HashMap<String, ClusterSetting>();
-  
+  private Map<String, ClusterSettingEmr> EMRCluster =
+      new HashMap<String, ClusterSettingEmr>();
+  private Map<String, ClusterSettingRedshift> RedshiftCluster =
+      new HashMap<String, ClusterSettingRedshift>();
+  private Map<String, ClusterSettingRds> RDSCluster =
+      new HashMap<String, ClusterSettingRds>();
   
   RedshiftClusterFactory redshift = new RedshiftClusterFactory();
   EmrClusterFactory emr = new EmrClusterFactory();
+  RdsClusterFactory rds = new RdsClusterFactory();
   
   public ClusterFactory() {
     try {
@@ -54,108 +61,146 @@ public class ClusterFactory {
     gson = builder.create();
   }
   
-  public void createCluster(String name, int nodes, String instance, String type,
+  public void createCluster(String name, String instanceType, String type,
       Object ... args) {
     if (type.equals("emr")) {
-      ClusterSetting cls = emr.createCluster(name, nodes, instance, 
-          (Map<String, Boolean>) args[0]);
-      clusterSettings.put(cls.getId(), cls);
+      ClusterSettingEmr cls = emr.createCluster(name, instanceType, (int) args[0], 
+          (Map<String, Boolean>) args[1]);
+      EMRCluster.put(cls.getId(), cls);
       
     } else if (type.equals("redshift")) {
-      ClusterSetting cls = redshift.createCluster(name, nodes, instance, 
+      ClusterSettingRedshift cls = redshift.createCluster(name, instanceType, (int) args[0], 
           (String) args[1], (String) args[2]);
-      clusterSettings.put(cls.getId(), cls);
+      RedshiftCluster.put(cls.getId(), cls);
+      
+    } else if (type.equals("rds")) {
+      ClusterSettingRds cls = rds.createCluster(name, instanceType, (int) args[0],
+          (String) args[1], (String) args[2], (String) args[3], (String) args[4]);
+      RDSCluster.put(cls.getId(), cls);
     }
+    saveToFile();
   }
   
-  public List<ClusterSetting> getStatus() {
-    List<ClusterSetting> orderedSettings = new LinkedList<ClusterSetting>();
+  public List<Object> getStatus() {
+    List<Object> orderedSettings = new LinkedList<Object>();
     
-    for (ClusterSetting cl: clusterSettings.values()) {
+    for (ClusterSettingEmr cl: EMRCluster.values()) {
       String clusterId = cl.getId();
-      orderedSettings.add(cl); 
-      if (cl.getType().equals("emr")) {
-        String status = emr.getStatus(clusterId);
-        Map<String, String> urls = new HashMap<String, String>();
-        
-        if (status.equals("deleting")) {
-          clusterSettings.remove(clusterId);
-        } else if (status.equals("running")){
-          String dns = emr.getDnsMaster(clusterId);          
-          if (dns != null && !dns.isEmpty()) {
-            logger.info("MASTER: " + dns);
-            if (cl.getApps().get("hue")) {
-              urls.put("hue", "http://" + dns + ":8888");          
-            }
-            urls.put("master", "http://" + dns + ":8088");
-            urls.put("dns", dns);
-            cl.setUrl(urls);
+      orderedSettings.add(cl);
+      
+      String status = emr.getStatus(clusterId);
+      Map<String, String> urls = new HashMap<String, String>();
+      
+      if (status.equals("deleting")) {
+        EMRCluster.remove(clusterId);
+      } else if (status.equals("running")){
+        String dns = emr.getDnsMaster(clusterId);          
+        if (dns != null && !dns.isEmpty()) {
+          logger.info("MASTER: " + dns);
+          if (cl.getApps().get("hue")) {
+            urls.put("hue", "http://" + dns + ":8888");          
           }
+          urls.put("master", "http://" + dns + ":8088");
+          urls.put("dns", dns);
+          cl.setUrl(urls);
         }
-        cl.setStatus(status);
-      } else {
-        String status = redshift.getStatus(clusterSettings
-            .get(clusterId).getName());
-        Map<String, String> urls = new HashMap<String, String>();
-        
-        if (status.equals("deleting")) {
-          clusterSettings.remove(clusterId);
-        }
-        else if (status.equals("running")) {
-          String dns = redshift.getUrlRedshift(cl.getName());
-          if (dns != null && !dns.isEmpty()) {
-            urls.put("dns", dns);
-            cl.setUrl(urls);
-          }
-        }
-        cl.setStatus(status);
       }
+      cl.setStatus(status);
     }
+    
+    for (ClusterSettingRedshift cl: RedshiftCluster.values()) {
+      String clusterId = cl.getId();
+      orderedSettings.add(cl);
+      
+      String status = redshift.getStatus(RedshiftCluster
+          .get(clusterId).getName());
+      Map<String, String> urls = new HashMap<String, String>();
+      
+      if (status.equals("deleting")) {
+        RedshiftCluster.remove(clusterId);
+      }
+      else if (status.equals("running")) {
+        String dns = redshift.getUrlRedshift(cl.getName());
+        if (dns != null && !dns.isEmpty()) {
+          urls.put("dns", dns);
+          cl.setUrl(urls);
+        }
+      }
+      cl.setStatus(status);
+    }
+    
+    for (ClusterSettingRds cl: RDSCluster.values()) {
+      String clusterId = cl.getId();
+      orderedSettings.add(cl);
+      
+      String status = rds.getStatus(RDSCluster
+          .get(clusterId).getName());
+      Map<String, String> urls = new HashMap<String, String>();
+      
+      if (status.equals("deleting")) {
+        RDSCluster.remove(clusterId);
+      }
+      else if (status.equals("running")) {
+        String endpoint = rds.getEndpoint(cl.getName());
+        if (endpoint != null && !endpoint.isEmpty()) {
+          urls.put("dns", endpoint + ":3306");
+          cl.setUrl(urls);
+        }
+      }
+      cl.setStatus(status);
+    }
+    
     saveToFile();
     return orderedSettings;
   }
   
-  public void remove(String clusterId) {
-    ClusterSetting cl = clusterSettings.get(clusterId);
-    
-    if (cl.getType().equals("emr")) {
-      emr.remove(clusterId);
-    } else if (cl.getType().equals("redshift")) {
-      String name = clusterSettings.get(clusterId)
-          .getName();
-      redshift.remove(name);
+  public void remove(String clusterType, String clusterId) {
+    switch (clusterType) {
+        case "emr":
+          emr.remove(clusterId);
+          EMRCluster.remove(clusterId);
+          break;
+        case "redshift":
+          String nameRedshift = RedshiftCluster.get(clusterId).getName();
+          redshift.remove(nameRedshift);
+          RedshiftCluster.remove(clusterId);
+          break;
+        case "rds":
+          String nameRDS = RDSCluster.get(clusterId).getName();
+          rds.remove(nameRDS);
+          RDSCluster.remove(clusterId);
+          break;
     }
-    clusterSettings.remove(clusterId);
     saveToFile();
   }
   
   public void setClusterToInterpreter(String intId, String clustId) {
-    List<ClusterSetting> settings = new LinkedList<ClusterSetting>();
-    if (clustId.equals("")) {
-      for (ClusterSetting setting : settings) {
+    /*if (clustId.equals("")) {
+      for (ClusterSettingEmr setting : clusterSettings.values()) {
         if (setting.getSelected().equals(intId)) {
           setting.setSelected("");
         }
       } 
     } else {
-      for (ClusterSetting setting : settings) {
+      for (ClusterSettingEmr setting : clusterSettings.values()) {
         if (setting.getSelected().equals(intId)) {
           setting.setSelected("");
         }
       }
       clusterSettings.get(clustId).setSelected(intId);
-    }
+    }*/
   }
   
   public void saveToFile() {
     String jsonString;
 
-    synchronized (clusterSettings) {
-      ClusterInfoSaving info = new ClusterInfoSaving();
-      info.clusterSettings = clusterSettings;
+    ClusterInfoSaving info = new ClusterInfoSaving();
+    info.EMR = EMRCluster;
+    info.Redshift = RedshiftCluster;
+    info.RDS = RDSCluster;
 
-      jsonString = gson.toJson(info);
-    }
+    jsonString = gson.toJson(info);
+    
     try {
       File settingFile = new File(conf.getConfDir() + "/clusters.json");
       if (!settingFile.exists()) {
@@ -192,10 +237,10 @@ public class ClusterFactory {
 
     String json = sb.toString();
     ClusterInfoSaving info = gson.fromJson(json, ClusterInfoSaving.class);
-    for (String k : info.clusterSettings.keySet()) {
-      ClusterSetting setting = info.clusterSettings.get(k);
+    for (String k : info.EMR.keySet()) {
+      ClusterSettingEmr setting = info.EMR.get(k);
 
-      ClusterSetting clustSetting = new ClusterSetting(
+      ClusterSettingEmr clustSetting = new ClusterSettingEmr(
         setting.getId(),
         setting.getName(),
         setting.getSlaves(),
@@ -203,9 +248,45 @@ public class ClusterFactory {
         setting.getUrl(),
         setting.getSelected(),
         setting.getType(),
+        setting.getInstanceType(),
         setting.getApps());
 
-      clusterSettings.put(k, clustSetting);
+      EMRCluster.put(k, clustSetting);
+    }
+    for (String k : info.Redshift.keySet()) {
+      ClusterSettingRedshift setting = info.Redshift.get(k);
+
+      ClusterSettingRedshift clustSetting = new ClusterSettingRedshift(
+        setting.getId(),
+        setting.getName(),
+        setting.getSlaves(),
+        setting.getStatus(),
+        setting.getUrl(),
+        setting.getSelected(),
+        setting.getType(),
+        setting.getInstanceType(),
+        setting.getApps());
+
+      RedshiftCluster.put(k, clustSetting);
+    }
+    for (String k : info.RDS.keySet()) {
+      ClusterSettingRds setting = info.RDS.get(k);
+
+      ClusterSettingRds clustSetting = new ClusterSettingRds(
+        setting.getId(),
+        setting.getName(),
+        setting.getUser(),
+        setting.getPassw(),
+        setting.getStatus(),
+        setting.getUrl(),
+        setting.getType(),
+        setting.getInstanceType(),
+        setting.getSelected(),
+        setting.getEngine(),
+        setting.getStorage(),
+        setting.getVersion());
+
+      RDSCluster.put(k, clustSetting);
     }
   }
 }

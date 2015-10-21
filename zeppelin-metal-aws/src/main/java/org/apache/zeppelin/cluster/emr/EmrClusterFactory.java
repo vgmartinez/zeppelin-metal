@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.zeppelin.cluster.utils.ClusterSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,12 +38,12 @@ public class EmrClusterFactory {
   
   public EmrClusterFactory() {}
 
-  public ClusterSetting createCluster(String name, int nodes, 
-      String instance, Map<String, Boolean> apps) {
+  public ClusterSettingEmr createCluster(String name, String instanceType, int nodes, 
+      Map<String, Boolean> apps) {
 
-    String id = createClusterHadoop(name, nodes, instance, apps);
-    ClusterSetting clustSetting = new ClusterSetting(id, name, nodes, 
-        "starting", null, "", "emr", apps);
+    String id = createClusterHadoop(name, nodes, instanceType, apps);
+    ClusterSettingEmr clustSetting = new ClusterSettingEmr(id, name, nodes, 
+        "starting", null, "", "emr", instanceType, apps);
     
     return clustSetting;
   }

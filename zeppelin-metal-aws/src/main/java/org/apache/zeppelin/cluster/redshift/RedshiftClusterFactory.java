@@ -2,7 +2,6 @@ package org.apache.zeppelin.cluster.redshift;
 
 import java.util.List;
 
-import org.apache.zeppelin.cluster.utils.ClusterSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,11 +25,11 @@ public class RedshiftClusterFactory {
   
   public RedshiftClusterFactory() {}
 
-  public ClusterSetting createCluster(String name, int slaves, 
-      String type, String user, String passw) {
-    ClusterSetting clustSetting = new ClusterSetting(name, slaves,
-        "starting", null, "", "redshift", null);
-    createClusterRedshift(name, slaves, user, passw, type);
+  public ClusterSettingRedshift createCluster(String name, String instanceType, 
+      int slaves, String user, String passw) {
+    ClusterSettingRedshift clustSetting = new ClusterSettingRedshift(name, slaves,
+        "starting", null, "", "redshift", instanceType, null);
+    createClusterRedshift(name, slaves, user, passw, instanceType);
     
     return clustSetting;
   }

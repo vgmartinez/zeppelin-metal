@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.zeppelin.cluster.utils;
+package org.apache.zeppelin.cluster.emr;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +26,7 @@ import org.apache.zeppelin.notebook.utility.IdHashes;
 /**
  * Cluster settings
  */
-public class ClusterSetting {
+public class ClusterSettingEmr {
   private String id;
   private String name;
   private int slaves;
@@ -35,9 +35,11 @@ public class ClusterSetting {
   private Map<String, String> urls = new HashMap<String, String>();
   private Map<String, Boolean> apps = new HashMap<String, Boolean>();
   private String type;
+  private String instanceType;
   
-  public ClusterSetting(String id, String name, int slaves, String status, 
-      Map<String, String> urls, String selected, String type, Map<String, Boolean> apps) {
+  public ClusterSettingEmr(String id, String name, int slaves, String status, 
+      Map<String, String> urls, String selected, String type, String instanceType, 
+      Map<String, Boolean> apps) {
     this.id = id;
     this.name = name;
     this.slaves = slaves;
@@ -46,12 +48,12 @@ public class ClusterSetting {
     this.apps = apps;
     this.selected = selected;
     this.type = type;
-    
+    this.instanceType = instanceType;
   }
   
-  public ClusterSetting(String name, int slaves, String status, Map<String, String> urls,
-      String selected, String type, Map<String, Boolean> apps) {
-    this(generateId(), name, slaves, status, urls, selected, type, apps);
+  public ClusterSettingEmr(String name, int slaves, String status, Map<String, String> urls,
+      String selected, String type, String instanceType, Map<String, Boolean> apps) {
+    this(generateId(), name, slaves, status, urls, selected, type, instanceType, apps);
   }
   
   public void setId(String id) {
@@ -110,6 +112,19 @@ public class ClusterSetting {
   public String getType() {
     return type;
   }
+  
+  public void setType(String type) {
+    this.type = type;
+  }
+  
+  
+  public String getInstanceType() {
+    return instanceType;
+  }
+
+  public void setInstanceType(String instanceType) {
+    this.instanceType = instanceType;
+  }
 
   public Map<String, Boolean> getApps() {
     return apps;
@@ -117,9 +132,5 @@ public class ClusterSetting {
 
   public void setApps(Map<String, Boolean> apps) {
     this.apps = apps;
-  }
-
-  public void setType(String type) {
-    this.type = type;
   }
 }

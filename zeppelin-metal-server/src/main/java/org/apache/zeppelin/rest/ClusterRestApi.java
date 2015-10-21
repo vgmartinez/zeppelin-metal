@@ -14,8 +14,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.zeppelin.cluster.ClusterFactory;
-import org.apache.zeppelin.cluster.utils.ClusterSetting;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestHadoop;
+import org.apache.zeppelin.rest.message.NewClusterSettingRequestRds;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestRedshift;
 import org.apache.zeppelin.server.JsonResponse;
 import org.slf4j.Logger;
@@ -53,13 +53,19 @@ public class ClusterRestApi {
       NewClusterSettingRequestHadoop request = gson.fromJson(message,
           NewClusterSettingRequestHadoop.class);
       clusterFactory.createCluster(request.getName(), 
-          request.getSlaves(), request.getInstance(), type, request.getApp());
-    } else {
+          request.getInstance(), type, request.getSlaves(), request.getApp());
+    } else if (type.equals("redshift")) {
       NewClusterSettingRequestRedshift request = gson.fromJson(message, 
           NewClusterSettingRequestRedshift.class);
       clusterFactory.createCluster(request.getName(),
-          request.getSlaves(), request.getInstance(), type, null, 
+          request.getInstance(), type, request.getSlaves(), null, 
           request.getUser(), request.getPassw());
+    } else if (type.equals("rds")) {
+      NewClusterSettingRequestRds request = gson.fromJson(message, 
+          NewClusterSettingRequestRds.class);
+      clusterFactory.createCluster(request.getName(),
+          request.getInstance(), type, request.getStorage(), request.getUser(), 
+          request.getPassw(), request.getEngine(), request.getVersion());
     }
     
     return new JsonResponse(Status.ACCEPTED, "").build();
@@ -72,7 +78,7 @@ public class ClusterRestApi {
   @GET
   @Path("status")
   public Response getStatusCluster() {
-    List<ClusterSetting> clusterSettings = null;
+    List<Object> clusterSettings = null;
     clusterSettings = clusterFactory.getStatus();
     return new JsonResponse(Status.OK, clusterSettings).build();
   }
@@ -82,11 +88,12 @@ public class ClusterRestApi {
   * @return
   */
   @DELETE
-  @Path("setting/{settingId}")
-  public Response removeSetting(@PathParam("settingId") String settingId)
+  @Path("setting/{clusterType}/{clusterId}")
+  public Response removeSetting(@PathParam("clusterType") String clusterType,
+      @PathParam("clusterId") String clusterId)
       throws IOException {
-    logger.info("Remove interpreterSetting {}", settingId);
-    clusterFactory.remove(settingId);
+    logger.info("Remove interpreterSetting {}", clusterId);
+    clusterFactory.remove(clusterType, clusterId);
     return new JsonResponse(Status.OK).build();
   }
   
