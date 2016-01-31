@@ -33,9 +33,20 @@ public class RdsClusterFactory {
 
   public ClusterSettingRds createCluster(String name, String instanceType, int storage,
       String user, String passw, String engine, String version) {
-    
+    String driver = null;
+    switch (engine) {
+        case "postgres":
+          driver = "org.postgresql.Driver";
+          break;
+        case "mysql":
+          driver = "com.mysql.jdbc.Driver";
+          break;
+        case "mariadb":
+          driver = "org.mariadb.jdbc.Driver";
+          break;
+    }
     ClusterSettingRds clustSetting = new ClusterSettingRds(name, user, passw,
-        "starting", null, "", "rds", instanceType, engine, storage, version);
+        "starting", null, "", "rds", instanceType, engine, storage, version, driver);
     
     createClusterRds(name, instanceType, storage, user, passw, engine, version);
     

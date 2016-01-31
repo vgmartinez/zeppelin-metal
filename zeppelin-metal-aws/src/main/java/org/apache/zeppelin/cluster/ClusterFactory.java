@@ -174,21 +174,58 @@ public class ClusterFactory {
     saveToFile();
   }
   
-  public void setClusterToInterpreter(String intId, String clustId) {
-    /*if (clustId.equals("")) {
-      for (ClusterSettingEmr setting : clusterSettings.values()) {
-        if (setting.getSelected().equals(intId)) {
-          setting.setSelected("");
-        }
-      } 
-    } else {
-      for (ClusterSettingEmr setting : clusterSettings.values()) {
-        if (setting.getSelected().equals(intId)) {
-          setting.setSelected("");
-        }
-      }
-      clusterSettings.get(clustId).setSelected(intId);
-    }*/
+  public void setClusterToInterpreter(String intId, String clusterType, String clustId) {
+    switch (clusterType) {
+        case "emr":
+          if (clustId.equals("")) {
+            for (ClusterSettingEmr setting : EMRCluster.values()) {
+              if (setting.getSelected().equals(intId)) {
+                setting.setSelected("");
+              }
+            } 
+          } else {
+            for (ClusterSettingEmr setting : EMRCluster.values()) {
+              if (setting.getSelected().equals(intId)) {
+                setting.setSelected("");
+              }
+            }
+            EMRCluster.get(clustId).setSelected(intId);
+          }
+          break;
+        case "redshift":
+          if (clustId.equals("")) {
+            for (ClusterSettingRedshift setting : RedshiftCluster.values()) {
+              if (setting.getSelected().equals(intId)) {
+                setting.setSelected("");
+              }
+            } 
+          } else {
+            for (ClusterSettingRedshift setting : RedshiftCluster.values()) {
+              if (setting.getSelected().equals(intId)) {
+                setting.setSelected("");
+              }
+            }
+            RedshiftCluster.get(clustId).setSelected(intId);
+          }
+          break;
+        case "rds":
+          if (clustId.equals("")) {
+            for (ClusterSettingRds setting : RDSCluster.values()) {
+              if (setting.getSelected().equals(intId)) {
+                setting.setSelected("");
+              }
+            } 
+          } else {
+            for (ClusterSettingRds setting : RDSCluster.values()) {
+              if (setting.getSelected().equals(intId)) {
+                setting.setSelected("");
+              }
+            }
+            RDSCluster.get(clustId).setSelected(intId);
+          }
+          break;
+    }
+    saveToFile();
   }
   
   public void saveToFile() {
@@ -284,7 +321,8 @@ public class ClusterFactory {
         setting.getSelected(),
         setting.getEngine(),
         setting.getStorage(),
-        setting.getVersion());
+        setting.getVersion(),
+        setting.getDriver());
 
       RDSCluster.put(k, clustSetting);
     }

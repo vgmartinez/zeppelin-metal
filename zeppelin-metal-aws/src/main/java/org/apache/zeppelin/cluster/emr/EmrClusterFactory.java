@@ -147,10 +147,6 @@ public class EmrClusterFactory {
   }
   
   public void remove(String clusterId) {
-    removeEmrCluster(clusterId);
-  }
-  
-  public void removeEmrCluster(String clusterId) {
     emr.terminateJobFlows(
         new TerminateJobFlowsRequest(Arrays.asList(new String[] {clusterId})));
   }

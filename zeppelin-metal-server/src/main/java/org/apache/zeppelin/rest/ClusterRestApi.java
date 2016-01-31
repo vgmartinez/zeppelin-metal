@@ -102,11 +102,12 @@ public class ClusterRestApi {
    * @throws IOException
    */
   @PUT
-  @Path("set/{intId}")
+  @Path("set/{intId}/{clusterType}/{clusterId}")
   public Response setInt(@PathParam("intId") String intId, 
-      String clustId) throws IOException {
-    logger.info("Interpreter id {}, cluster id {}", intId, clustId);
-    clusterFactory.setClusterToInterpreter(intId, clustId);
+      @PathParam("clusterType") String clusterType, 
+      @PathParam("clusterId") String clusterId) throws IOException {
+    logger.info("Interpreter id {}, cluster id {}", intId, clusterId);
+    clusterFactory.setClusterToInterpreter(intId, clusterType, clusterId);
     return new JsonResponse(Status.OK).build();
   }
   

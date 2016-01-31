@@ -39,10 +39,11 @@ public class ClusterSettingRds {
   private String engine;
   private int storage;
   private String version;
+  private String driver;
   
   public ClusterSettingRds(String id, String name, String user, String passw, String status, 
       Map<String, String> urls, String type, String instanceType, String selected, 
-      String engine, int storage, String version) {
+      String engine, int storage, String version, String driver) {
     this.id = id;
     this.name = name;
     this.user = user;
@@ -55,13 +56,14 @@ public class ClusterSettingRds {
     this.engine = engine;
     this.storage = storage;
     this.version = version;
+    this.driver = driver;
   }
   
   public ClusterSettingRds(String name, String user, String passw, String status, 
       Map<String, String> urls, String selected, String type, String instanceType,
-      String engine, int storage, String version) {
+      String engine, int storage, String version, String driver) {
     this(generateId(), name, user, passw, status, urls, type, instanceType, selected, 
-        engine, storage, version);
+        engine, storage, version, driver);
   }
   
   public void setId(String id) {
@@ -163,5 +165,13 @@ public class ClusterSettingRds {
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public String getDriver() {
+    return driver;
+  }
+
+  public void setDriver(String driver) {
+    this.driver = driver;
   }
 }
