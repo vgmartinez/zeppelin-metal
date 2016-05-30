@@ -17,7 +17,6 @@ import org.apache.zeppelin.cluster.ClusterFactory;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestHadoop;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestRds;
 import org.apache.zeppelin.rest.message.NewClusterSettingRequestRedshift;
-import org.apache.zeppelin.server.JsonResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

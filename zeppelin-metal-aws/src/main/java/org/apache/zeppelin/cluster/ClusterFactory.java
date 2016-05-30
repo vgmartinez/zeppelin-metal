@@ -21,7 +21,6 @@ import org.apache.zeppelin.cluster.redshift.RedshiftClusterFactory;
 import org.apache.zeppelin.cluster.utils.ClusterInfoSaving;
 import org.apache.zeppelin.conf.ZeppelinConfiguration;
 import org.apache.zeppelin.interpreter.Interpreter;
-import org.apache.zeppelin.interpreter.InterpreterSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,14 +56,13 @@ public class ClusterFactory {
     
     GsonBuilder builder = new GsonBuilder();
     builder.setPrettyPrinting();
-    builder.registerTypeAdapter(Interpreter.class, new InterpreterSerializer());
     gson = builder.create();
   }
   
   public void createCluster(String name, String instanceType, String type,
       Object ... args) {
     if (type.equals("emr")) {
-      ClusterSettingEmr cls = emr.createCluster(name, instanceType, (int) args[0], 
+      ClusterSettingEmr cls = emr.create(name, instanceType, (int) args[0], 
           (Map<String, Boolean>) args[1]);
       EMRCluster.put(cls.getId(), cls);
       

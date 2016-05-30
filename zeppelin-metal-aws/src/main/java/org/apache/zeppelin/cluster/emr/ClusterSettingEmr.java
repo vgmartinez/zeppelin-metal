@@ -21,12 +21,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.zeppelin.cluster.ClusterSetting;
 import org.apache.zeppelin.notebook.utility.IdHashes;
 
 /**
  * Cluster settings
  */
-public class ClusterSettingEmr {
+public class ClusterSettingEmr extends ClusterSetting {
   private String id;
   private String name;
   private int slaves;

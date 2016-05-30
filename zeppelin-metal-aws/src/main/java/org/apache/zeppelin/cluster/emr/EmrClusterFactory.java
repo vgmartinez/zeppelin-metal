@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.zeppelin.cluster.Cluster;
+import org.apache.zeppelin.cluster.ClusterSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,7 @@ import com.amazonaws.services.elasticmapreduce.util.StepFactory;
  * Interpreter Rest API
  *
  */
-public class EmrClusterFactory {
+public class EmrClusterFactory implements Cluster {
   static Logger logger = LoggerFactory.getLogger(EmrClusterFactory.class);
   public static String clusterIdentifier = "";
 
@@ -41,15 +43,15 @@ public class EmrClusterFactory {
   public ClusterSettingEmr createCluster(String name, String instanceType, int nodes, 
       Map<String, Boolean> apps) {
 
-    String id = createClusterHadoop(name, nodes, instanceType, apps);
-    ClusterSettingEmr clustSetting = new ClusterSettingEmr(id, name, nodes, 
+    ClusterSettingEmr clustSetting = new ClusterSettingEmr(name, nodes, 
         "starting", null, "", "emr", instanceType, apps);
     
+    create(clustSetting);
     return clustSetting;
   }
   
-  public String createClusterHadoop(String name, int nodes, String instance, 
-      Map<String, Boolean> apps){
+  @Override
+  public void create(ClusterSetting cluster){
     RunJobFlowResult result;
     StepFactory stepFactory = new StepFactory();
     StepConfig enabledebugging = new StepConfig()
@@ -59,36 +61,38 @@ public class EmrClusterFactory {
     
     List<Application> applications = new ArrayList<Application>();
     
-    if (apps.get("hive")) {
+    if (cluster.getApps().get("hive")) {
       Application hive = new Application()
         .withName("Hive");
       applications.add(hive);
     } 
-    if (apps.get("hue")) {
+    if (cluster.getApps().get("hue")) {
       Application hue = new Application()
         .withName("Hue");
       applications.add(hue);
     } 
-    if (apps.get("spark")) {
+    if (cluster.getApps().get("spark")) {
       Application spark = new Application()
         .withName("Spark");
       applications.add(spark);
     }
     RunJobFlowRequest request = new RunJobFlowRequest()
-      .withName(name)
+      .withName(cluster.getName())
       .withReleaseLabel("emr-4.1.0")
       .withSteps(enabledebugging)
       .withApplications(applications)
       .withServiceRole("EMR_DefaultRole")
       .withJobFlowRole("EMR_EC2_DefaultRole")
       .withInstances(new JobFlowInstancesConfig()
-        .withInstanceCount(nodes)
+        .withInstanceCount(cluster.getSlaves())
         .withKeepJobFlowAliveWhenNoSteps(true)
-        .withMasterInstanceType(instance)
-        .withSlaveInstanceType(instance));
+        .withMasterInstanceType(cluster.getInstanceType())
+        .withSlaveInstanceType(cluster.getInstanceType()));
    
     result = emr.runJobFlow(request);
-    return result.getJobFlowId();
+    String id = result.getJobFlowId();
+    cluster.setId(id);
+  
   }
 
   public String getStatus(String clusterId){
@@ -149,5 +153,17 @@ public class EmrClusterFactory {
   public void remove(String clusterId) {
     emr.terminateJobFlows(
         new TerminateJobFlowsRequest(Arrays.asList(new String[] {clusterId})));
+  }
+
+  @Override
+  public List<Object> getStatus() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void remove() {
+    // TODO Auto-generated method stub
+    
   }
 }
