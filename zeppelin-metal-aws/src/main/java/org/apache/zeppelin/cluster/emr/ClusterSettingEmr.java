@@ -20,14 +20,12 @@ package org.apache.zeppelin.cluster.emr;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-
-import org.apache.zeppelin.cluster.ClusterSetting;
 import org.apache.zeppelin.notebook.utility.IdHashes;
 
 /**
  * Cluster settings
  */
-public class ClusterSettingEmr extends ClusterSetting {
+public class ClusterSettingEmr {
   private String id;
   private String name;
   private int slaves;
@@ -37,6 +35,8 @@ public class ClusterSettingEmr extends ClusterSetting {
   private Map<String, Boolean> apps = new HashMap<String, Boolean>();
   private String type;
   private String instanceType;
+  
+  public ClusterSettingEmr() {}
   
   public ClusterSettingEmr(String id, String name, int slaves, String status, 
       Map<String, String> urls, String selected, String type, String instanceType, 
@@ -86,7 +86,7 @@ public class ClusterSettingEmr extends ClusterSetting {
     this.urls = urls;
   }
 
-  public void setSlaves(int memory) {
+  public void setSlaves(int slaves) {
     this.slaves = slaves;
   }
 
